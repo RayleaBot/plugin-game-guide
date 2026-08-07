@@ -1,7 +1,7 @@
 {
   "id": "raylea.game-guide",
   "name": "游戏攻略",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "manifest_version": "2",
   "plugin_protocol_version": "1",
   "runtime": "go",
@@ -15,10 +15,12 @@
     "message.send",
     "message.forward.send",
     "logger.write",
+    "storage.file",
     "http.request",
     "render.image"
   ],
   "capability_parameters": {
+    "storage_roots": ["plugin_data"],
     "http_hosts": [
       "bbs-api.miyoushe.com",
       "bbs-static.miyoushe.com",
