@@ -1,21 +1,17 @@
-package main
+package plugin
 
 import (
 	"context"
-	_ "embed"
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"os"
 	"sort"
 	"strings"
 	"unicode"
 
 	rayleabot "github.com/RayleaBot/RayleaBot/sdk/go"
+	"github.com/RayleaBot/plugin-game-guide/internal/assets"
 )
-
-//go:embed data/characters.json
-var characterData []byte
 
 type character struct {
 	Name    string   `json:"name"`
@@ -44,18 +40,14 @@ type searchResponse struct {
 
 var catalog = mustCharacterCatalog()
 
-func main() {
-	err := rayleabot.Run(context.Background(), rayleabot.Options{
+func Run(ctx context.Context) error {
+	return rayleabot.Run(ctx, rayleabot.Options{
 		PluginID: "raylea.game-guide",
 		Subscriptions: []string{
 			"message.group", "message.private", "plugin.started", "bot.identity.changed",
 		},
 		MaxConcurrentHandlers: 3,
 	}, rayleabot.HandlerFunc(handleEvent))
-	if err != nil {
-		_, _ = os.Stderr.WriteString(err.Error() + "\n")
-		os.Exit(1)
-	}
 }
 
 func handleEvent(ctx context.Context, event *rayleabot.EventContext) error {
@@ -190,7 +182,7 @@ func normalize(value string) string {
 
 func mustCharacterCatalog() characterCatalog {
 	var value characterCatalog
-	if err := json.Unmarshal(characterData, &value); err != nil || len(value.Characters) == 0 {
+	if err := json.Unmarshal(assets.CharacterData, &value); err != nil || len(value.Characters) == 0 {
 		panic("invalid embedded character catalog")
 	}
 	return value

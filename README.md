@@ -2,6 +2,14 @@
 
 `raylea.game-guide` 提供游戏角色攻略查询，并使用 RayleaBot 托管的渲染模板生成卡片。插件以独立 Go 模块和独立 GitHub Release 发布。
 
+## 目录结构
+
+- `cmd/game-guide/`：只负责启动进程。
+- `internal/plugin/`：角色检索、事件处理和测试。
+- `internal/assets/`：由 Go 嵌入的角色数据；构建时映射为 artifact 的 `data/characters.json`。
+- `templates/`：宿主渲染模板。
+- `tools/build/`：统一组装后端、数据与模板。
+
 ## 本地联调
 
 将本仓库路径写入 RayleaBot 根目录下被忽略的 `plugin-workspace.local.json`，并运行：
