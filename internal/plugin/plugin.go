@@ -39,12 +39,12 @@ func sendCharacterList(ctx context.Context, event *rayleabot.EventContext) error
 		Template: "character-list", Data: data, Output: "png", FallbackText: fallback,
 	})
 	if err != nil {
-		logAction(ctx, event.Actions(), "warn", "游戏攻略角色列表渲染失败", map[string]any{"error": err.Error()})
+		logAction(ctx, event.Actions(), "warn", fmt.Sprintf("包含 %v 名角色的攻略列表图片渲染失败；本次将返回文字错误提示。原因：%s", data["total"], err.Error()), map[string]any{"character_count": data["total"], "error": err.Error()})
 		return event.SendText("角色列表图片生成失败，请稍后再试。")
 	}
 	imagePath, _ := result["image_path"].(string)
 	if strings.TrimSpace(imagePath) == "" {
-		logAction(ctx, event.Actions(), "warn", "游戏攻略角色列表图片结果缺少路径", nil)
+		logAction(ctx, event.Actions(), "warn", fmt.Sprintf("包含 %v 名角色的攻略列表渲染完成，但结果没有图片路径；本次将返回文字错误提示。", data["total"]), map[string]any{"character_count": data["total"], "has_image_path": false})
 		return event.SendText("角色列表图片生成失败，请稍后再试。")
 	}
 	_, err = event.Actions().MessageSend(ctx, rayleabot.MessageSendRequest{
@@ -53,6 +53,9 @@ func sendCharacterList(ctx context.Context, event *rayleabot.EventContext) error
 		Message:    rayleabot.MessageOut{Segments: []rayleabot.Segment{rayleabot.Image(imagePath)}},
 	})
 	if err != nil {
+		logAction(ctx, event.Actions(), "warn", fmt.Sprintf("攻略角色列表图片发送到 %s %s 失败；用户未收到列表，请稍后重试。原因：%s", event.Event.Target.Type, event.Event.Target.ID, err.Error()), mergeFields(map[string]any{
+			"target_type": event.Event.Target.Type, "target_id": event.Event.Target.ID,
+		}, actionErrorFields(err)))
 		return event.SendText("角色列表图片发送失败，请稍后再试。")
 	}
 	return event.Result(map[string]any{"handled": true, "command": "character-list", "total": data["total"]})

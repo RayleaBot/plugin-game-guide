@@ -1,7 +1,7 @@
 {
   "id": "raylea.game-guide",
   "name": "游戏攻略",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "manifest_version": "2",
   "plugin_protocol_version": "1",
   "runtime": "go",

@@ -70,7 +70,8 @@ func (service *guideService) searchSources(ctx context.Context, item character) 
 			Method: "GET", URL: searchEndpoint + "?" + params.Encode(), Headers: cloneHeaders(requestHeaders), TimeoutSeconds: 15,
 		})
 		if err != nil || !successfulResponse(result) {
-			service.log(ctx, "warn", "游戏攻略米游社搜索请求失败", map[string]any{"character": item.Name, "term": term, "error": errorText(err)})
+			reason := requestFailureReason(err, result)
+			service.log(ctx, "warn", fmt.Sprintf("米游社未能返回“%s”的攻略搜索结果，关键词为“%s攻略”；将继续尝试其他别名或缓存。原因：%s", item.Name, term, reason), map[string]any{"character": item.Name, "term": term, "status_code": intValue(result["status_code"]), "error": errorText(err)})
 			continue
 		}
 		document := responseDocument(result)
@@ -119,7 +120,8 @@ func (service *guideService) fetchPostImages(ctx context.Context, postID string)
 		Method: "GET", URL: detailEndpoint + "?" + params.Encode(), Headers: cloneHeaders(requestHeaders), TimeoutSeconds: 15,
 	})
 	if err != nil || !successfulResponse(result) {
-		service.log(ctx, "warn", "游戏攻略帖子详情请求失败", map[string]any{"post_id": postID, "error": errorText(err)})
+		reason := requestFailureReason(err, result)
+		service.log(ctx, "warn", fmt.Sprintf("米游社攻略帖子 %s 的详情读取失败；该帖图片将从本次结果中跳过。原因：%s", postID, reason), map[string]any{"post_id": postID, "status_code": intValue(result["status_code"]), "error": errorText(err)})
 		return nil
 	}
 	return imageURLsFromDetail(responseDocument(result))
@@ -344,4 +346,14 @@ func errorText(err error) string {
 		return "unexpected response"
 	}
 	return err.Error()
+}
+
+func requestFailureReason(err error, result rayleabot.ActionResult) string {
+	if err != nil {
+		return err.Error()
+	}
+	if status := intValue(result["status_code"]); status > 0 {
+		return fmt.Sprintf("上游返回 HTTP %d", status)
+	}
+	return "上游响应没有成功状态"
 }
