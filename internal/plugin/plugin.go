@@ -11,13 +11,7 @@ import (
 var catalog = mustCharacterCatalog()
 
 func Run(ctx context.Context) error {
-	return rayleabot.Run(ctx, rayleabot.Options{
-		PluginID: "raylea.game-guide",
-		Subscriptions: []string{
-			"plugin.started", "bot.identity.changed",
-		},
-		MaxConcurrentHandlers: 3,
-	}, rayleabot.HandlerFunc(handleEvent))
+	return rayleabot.Run(ctx, rayleabot.Options{}, rayleabot.HandlerFunc(handleEvent))
 }
 
 func handleEvent(ctx context.Context, event *rayleabot.EventContext) error {

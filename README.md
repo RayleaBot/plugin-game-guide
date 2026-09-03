@@ -93,7 +93,7 @@ RayleaBot 官方插件 · `raylea.game-guide`
 
 ## 开发
 
-插件以独立 Go 模块和独立 GitHub Release 发布。角色数据由 Go 嵌入，构建时映射为 artifact 的 `data/characters.json`。模板与数据文件由同一 artifact 清单校验。
+插件以独立 Go 模块和独立 GitHub Release 发布。角色数据编译进后端，角色列表模板由统一构建器自动发现并进入 artifact 精确清单。
 
 ### 目录结构
 
@@ -103,8 +103,7 @@ plugin-game-guide/
   internal/plugin/                   角色检索、米游社拉取、缓存和发送
   internal/assets/characters.json    角色正式名、slug 与别名
   templates/character-list/          角色列表渲染模板
-  tools/build/                       组装后端、数据与模板
-  info.json
+  info.json                          manifest v3、权限与命令声明
 ```
 
 ### 本地联调
@@ -113,10 +112,9 @@ plugin-game-guide/
 
 ```json
 {
-  "workspace_version": "1",
+  "workspace_version": "2",
   "plugins": [
     {
-      "id": "raylea.game-guide",
       "path": "../RayleaBotPlugins/plugin-game-guide"
     }
   ]
@@ -137,7 +135,8 @@ $env:RAYLEA_SERVER_RELOAD = "watch"
 
 ```powershell
 go test -race ./...
-go run ./tools/build -target windows-x64
+$env:RAYLEA_PLUGIN_BUILD_USE_WORKSPACE = "1"
+go run github.com/RayleaBot/RayleaBot/sdk/go/cmd/raylea-plugin build-go --plugin . --backend ./cmd/game-guide --target windows-x64 --out dist
 ```
 
 ### 发布
